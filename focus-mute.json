@@ -1,0 +1,8 @@
+{
+  "processes": ["Hearthstone"],
+  "mode": "Mute",
+  "duckVolume": 0.1,
+  "intervalMs": 400,
+  "includeOverlay": [],
+  "logMaxKB": 1024
+}
