@@ -57,11 +57,14 @@ param(
 
     [string]$ConfigPath,
 
+    # Install 时强制用包里的 focus-mute.json 覆盖已装配置（切通用版/炉石版时用）
+    [switch]$ForceConfig,
+
     [switch]$Purge
 )
 
 $ErrorActionPreference = 'Stop'
-$ScriptVersion = '1.0.0'
+$ScriptVersion = '1.1.0'
 $TaskName = 'FocusMute'
 $MutexName = 'Local\FocusMuteDaemon'
 
@@ -134,7 +137,8 @@ $Targets = if ($ProcessName) { @($ProcessName) } else { @($Cfg.processes) }
 $EffectiveMode = if ($Mode) { $Mode } else { $Cfg.mode }
 $EffectiveDuck = if ($DuckVolume -ge 0) { $DuckVolume } else { $Cfg.duckVolume }
 $EffectiveInterval = if ($Interval -gt 0) { $Interval } else { $Cfg.intervalMs }
-$OverlayList = if ($IncludeOverlay -or $Cfg.includeOverlay.Count -gt 0) { @($Cfg.includeOverlay) } else { @() }
+$OverlayList = @($Cfg.includeOverlay)
+$UseOverlay = [bool]$IncludeOverlay -or ($OverlayList.Count -gt 0)
 
 $LogDir = Join-Path $ScriptDir 'logs'
 if (-not (Test-Path $LogDir)) { New-Item -ItemType Directory -Path $LogDir -Force | Out-Null }
@@ -391,7 +395,7 @@ function Test-IsActive {
     param([uint32[]]$GamePids, [uint32]$FgPid)
     if (-not $FgPid) { return $false }
     if ($GamePids -contains $FgPid) { return $true }
-    if ($OverlayList.Count -gt 0) {
+    if ($UseOverlay) {
         if ($OverlayList -contains (Get-ProcessNameById -TargetPid $FgPid)) { return $true }
     }
     return $false
@@ -675,7 +679,10 @@ switch ($Action) {
             Copy-Item $psSrc $psDst -Force
         }
         Copy-Item $vbsSrc $vbsDst -Force
-        if (-not (Test-Path $cfgDst)) { Copy-Item $ConfigFile $cfgDst -Force }
+        if ($ForceConfig -or -not (Test-Path $cfgDst)) {
+            if (Test-Path $ConfigFile) { Copy-Item $ConfigFile $cfgDst -Force }
+            Write-Log ('配置已写入：{0}' -f $cfgDst)
+        }
 
         $taskAction = New-ScheduledTaskAction -Execute 'wscript.exe' -Argument "`"$vbsDst`"" -WorkingDirectory $InstallDir
         $trigger = New-ScheduledTaskTrigger -AtLogOn -User "$env:USERDOMAIN\$env:USERNAME"
