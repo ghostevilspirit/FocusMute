@@ -1,5 +1,7 @@
 # FocusMute
 
+> 仓库：https://github.com/ghostevilspirit/FocusMute · 下载：https://github.com/ghostevilspirit/FocusMute/releases/latest
+
 **Windows 失焦自动静音** —— 目标程序在前台才出声，切走立刻静音，切回自动恢复。
 
 纯 Windows PowerShell 5.1 实现，**不需要装 .NET 运行时/NAudio/AutoHotkey/Node**，**不改目标程序任何文件**，不注入进程、不加钩子。
@@ -71,7 +73,7 @@ GetForegroundWindow → 前台窗口所属进程
 ### 方式 B：命令行直装
 
 ```powershell
-git clone https://github.com/<owner>/FocusMute.git
+git clone https://github.com/ghostevilspirit/FocusMute.git
 cd FocusMute
 powershell -NoProfile -ExecutionPolicy Bypass -File .\FocusMute.ps1 -Action Install
 ```
